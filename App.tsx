@@ -1,20 +1,31 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 
 export default function App() {
+  const [targetValue, setTargetValue] = useState<number>(0);
   const [values, setValues] = useState<string[]>(Array(8).fill('0'));
+
+  useEffect(() => {
+    setTargetValue(Math.floor(Math.random() * 256));
+  }, []);
 
   const toggleValue = (index: number) => {
     const newValues = [...values];
     newValues[index] = values[index] === '0' ? '1' : '0';
     setValues(newValues);
-  };
 
-  const decimalValue = parseInt(values.join(''), 2);
+    const decimalValue = parseInt(newValues.join(''), 2);
+    if (decimalValue === targetValue) {
+      Alert.alert('Correct', '🎉🎉🎉', [
+        { text: 'Again', onPress: () => setTargetValue(Math.floor(Math.random() * 256)) },
+      ]);
+      setValues(Array(8).fill('0'));
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{decimalValue}</Text>
+      <Text style={styles.title}>{targetValue}</Text>
       <View style={styles.boxContainer}>
         {values.map((value, index) => (
           <TouchableOpacity
