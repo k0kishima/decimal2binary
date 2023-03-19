@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 
 export default function App() {
   const [values, setValues] = useState<string[]>(Array(8).fill('0'));
 
-  const updateValue = (index: number, value: string) => {
-    if (value === '0' || value === '1') {
-      const newValues = [...values];
-      newValues[index] = value;
-      setValues(newValues);
-    }
+  const toggleValue = (index: number) => {
+    const newValues = [...values];
+    newValues[index] = values[index] === '0' ? '1' : '0';
+    setValues(newValues);
   };
 
   const decimalValue = parseInt(values.join(''), 2);
@@ -19,14 +17,13 @@ export default function App() {
       <Text style={styles.title}>{decimalValue}</Text>
       <View style={styles.boxContainer}>
         {values.map((value, index) => (
-          <TextInput
+          <TouchableOpacity
             key={index}
             style={styles.box}
-            value={value}
-            maxLength={1}
-            keyboardType="number-pad"
-            onChangeText={(text) => updateValue(index, text)}
-          />
+            onPress={() => toggleValue(index)}
+          >
+            <Text style={styles.boxText}>{value}</Text>
+          </TouchableOpacity>
         ))}
       </View>
     </View>
@@ -52,7 +49,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 1,
     borderColor: 'black',
-    textAlign: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  boxText: {
     fontSize: 18,
   },
 });
