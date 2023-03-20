@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,9 +14,22 @@ export default function App() {
   const [values, setValues] = useState<string[]>(Array(8).fill('0'));
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
+  const scrollViewRef = useRef<ScrollView | null>(null);
+
   useEffect(() => {
     setTargetValue(Math.floor(Math.random() * 256));
   }, []);
+  useEffect(() => {
+    if (modalVisible) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          x: 0,
+          y: targetValue * 30, // 適切なスクロールオフセットを得るための値
+          animated: true,
+        });
+      }, 200); // モーダルが開いた後にスクロールが実行されるようにするための遅延
+    }
+  }, [modalVisible, targetValue]);
 
   const toggleValue = (index: number) => {
     const newValues = [...values];
@@ -36,7 +49,13 @@ export default function App() {
     const rows = [];
     for (let i = 0; i < 256; i++) {
       rows.push(
-        <View key={i} style={styles.tableRow}>
+        <View
+          key={i}
+          style={[
+            styles.tableRow,
+            i === targetValue ? styles.highlightedRow : null,
+          ]}
+        >
           <Text style={styles.tableCell}>{i}</Text>
           <Text style={styles.tableCell}>{i.toString(2).padStart(8, '0')}</Text>
         </View>
@@ -80,7 +99,10 @@ export default function App() {
           >
             <Text style={styles.closeButtonText}>×</Text>
           </TouchableOpacity>
-          <ScrollView contentContainerStyle={styles.table}>
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={styles.table}
+          >
             {binaryTable()}
           </ScrollView>
         </View>
@@ -146,5 +168,8 @@ const styles = StyleSheet.create({
   tableCell: {
     flex: 1,
     fontSize: 16,
+  },
+  highlightedRow: {
+    backgroundColor: '#e0e0e0',
   },
 });
