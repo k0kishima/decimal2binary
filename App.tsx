@@ -1,13 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+} from 'react-native';
 
 export default function App() {
   const [targetValue, setTargetValue] = useState<number>(0);
   const [values, setValues] = useState<string[]>(Array(8).fill('0'));
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [correct, setCorrect] = useState<boolean>(false);
+
+  const scrollViewRef = useRef<ScrollView | null>(null);
 
   useEffect(() => {
     setTargetValue(Math.floor(Math.random() * 256));
   }, []);
+  useEffect(() => {
+    if (modalVisible) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          x: 0,
+          y: targetValue * 30, // 適切なスクロールオフセットを得るための値
+          animated: true,
+        });
+      }, 200); // モーダルが開いた後にスクロールが実行されるようにするための遅延
+    }
+  }, [modalVisible, targetValue]);
 
   const toggleValue = (index: number) => {
     const newValues = [...values];
@@ -16,11 +38,32 @@ export default function App() {
 
     const decimalValue = parseInt(newValues.join(''), 2);
     if (decimalValue === targetValue) {
-      Alert.alert('Correct', '🎉🎉🎉', [
-        { text: 'Again', onPress: () => setTargetValue(Math.floor(Math.random() * 256)) },
-      ]);
+      setCorrect(true);
+      setTimeout(() => {
+        setCorrect(false);
+        setTargetValue(Math.floor(Math.random() * 256));
+      }, 500);
       setValues(Array(8).fill('0'));
     }
+  };
+
+  const binaryTable = () => {
+    const rows = [];
+    for (let i = 0; i < 256; i++) {
+      rows.push(
+        <View
+          key={i}
+          style={[
+            styles.tableRow,
+            i === targetValue ? styles.highlightedRow : null,
+          ]}
+        >
+          <Text style={styles.tableCell}>{i}</Text>
+          <Text style={styles.tableCell}>{i.toString(2).padStart(8, '0')}</Text>
+        </View>
+      );
+    }
+    return rows;
   };
 
   return (
@@ -37,6 +80,40 @@ export default function App() {
           </TouchableOpacity>
         ))}
       </View>
+      <TouchableOpacity
+        style={styles.eyeIcon}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.eyeIconText}>👀</Text>
+      </TouchableOpacity>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.modalView}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setModalVisible(false)}
+          >
+            <Text style={styles.closeButtonText}>×</Text>
+          </TouchableOpacity>
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={styles.table}
+          >
+            {binaryTable()}
+          </ScrollView>
+        </View>
+      </Modal>
+      {correct && (
+        <View style={styles.correctOverlay}>
+          <View style={styles.correctCircle} />
+        </View>
+      )}
     </View>
   );
 }
@@ -44,26 +121,75 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 24,
-    marginBottom: 20,
+    marginBottom: 30,
   },
   boxContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
+    flexWrap: "nowrap",
   },
   box: {
     width: 40,
     height: 40,
-    borderWidth: 1,
-    borderColor: 'black',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#f0f0f0",
+    alignItems: "center",
+    justifyContent: "center",
   },
   boxText: {
-    fontSize: 18,
+    fontSize: 24,
+  },
+  eyeIcon: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+  },
+  eyeIconText: {
+    fontSize: 24,
+  },
+  modalView: {
+    flex: 1,
+    backgroundColor: "white",
+    paddingTop: 30,
+    paddingHorizontal: 20,
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+  },
+  closeButtonText: {
+    fontSize: 30,
+  },
+  table: {
+    paddingBottom: 20,
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderColor: "#e0e0e0",
+    paddingVertical: 5,
+  },
+  tableCell: {
+    flex: 1,
+    fontSize: 16,
+  },
+  highlightedRow: {
+    backgroundColor: '#e0e0e0',
+  },
+  correctOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  correctCircle: {
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'white',
+    borderWidth: 5,
+    borderColor: 'green',
   },
 });
