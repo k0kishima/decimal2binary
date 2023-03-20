@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Alert,
   Modal,
   ScrollView,
 } from 'react-native';
@@ -13,6 +12,7 @@ export default function App() {
   const [targetValue, setTargetValue] = useState<number>(0);
   const [values, setValues] = useState<string[]>(Array(8).fill('0'));
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [correct, setCorrect] = useState<boolean>(false);
 
   const scrollViewRef = useRef<ScrollView | null>(null);
 
@@ -38,9 +38,11 @@ export default function App() {
 
     const decimalValue = parseInt(newValues.join(''), 2);
     if (decimalValue === targetValue) {
-      Alert.alert('Correct', '🎉🎉🎉', [
-        { text: 'Again', onPress: () => setTargetValue(Math.floor(Math.random() * 256)) },
-      ]);
+      setCorrect(true);
+      setTimeout(() => {
+        setCorrect(false);
+        setTargetValue(Math.floor(Math.random() * 256));
+      }, 500);
       setValues(Array(8).fill('0'));
     }
   };
@@ -107,6 +109,11 @@ export default function App() {
           </ScrollView>
         </View>
       </Modal>
+      {correct && (
+        <View style={styles.correctOverlay}>
+          <View style={styles.correctCircle} />
+        </View>
+      )}
     </View>
   );
 }
@@ -171,5 +178,18 @@ const styles = StyleSheet.create({
   },
   highlightedRow: {
     backgroundColor: '#e0e0e0',
+  },
+  correctOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  correctCircle: {
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'white',
+    borderWidth: 5,
+    borderColor: 'green',
   },
 });
