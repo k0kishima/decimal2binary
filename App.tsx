@@ -7,8 +7,10 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { generateDecimalAndBinaryPair } from './src/utils/generateDecimalAndBinaryPair';
 
 export default function App() {
+  const questionRange: [number, number] = [1, 255];
   const [targetValue, setTargetValue] = useState<number>(0);
   const [values, setValues] = useState<string[]>(Array(8).fill('0'));
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -17,8 +19,10 @@ export default function App() {
   const scrollViewRef = useRef<ScrollView | null>(null);
 
   useEffect(() => {
-    setTargetValue(Math.floor(Math.random() * 256));
+    const [newTargetValue] = generateDecimalAndBinaryPair(...questionRange);
+    setTargetValue(newTargetValue);
   }, []);
+
   useEffect(() => {
     if (modalVisible) {
       setTimeout(() => {
@@ -41,7 +45,8 @@ export default function App() {
       setCorrect(true);
       setTimeout(() => {
         setCorrect(false);
-        setTargetValue(Math.floor(Math.random() * 256));
+        const [newTargetValue] = generateDecimalAndBinaryPair(...questionRange);
+        setTargetValue(newTargetValue);
       }, 500);
       setValues(Array(8).fill('0'));
     }
